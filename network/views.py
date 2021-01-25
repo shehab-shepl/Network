@@ -99,10 +99,13 @@ def following(request):
     
     all_likes = likes.objects.all()
     comments = comment.objects.all()
+    if len(all_posts) == 0:
+        message = "you aren't follow any one"
+        return render(request, "network/following.html",{'message':message})
     context = {
         'all_likes':all_likes,
         'all_posts':all_posts[0],
-        'comments':comments
+        'comments':comments,
     }
 
     return render(request, "network/index.html",context)
