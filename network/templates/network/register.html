@@ -1,5 +1,14 @@
 {% extends "network/layout.html" %}
 
+{% load static %}
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script>    </script>
+
+    <script src="{% static 'network/isvaliduser.js' %}"></script>
+{% endblock %}
+
 {% block body %}
 
     <h2>Register</h2>
@@ -14,7 +23,7 @@
             <input class="form-control" autofocus type="text" name="username" placeholder="Username">
         </div>
         <div class="form-group">
-            <input class="form-control" type="email" name="email" placeholder="Email Address">
+            <input class="form-control" id="id_email" type="email" name="email" placeholder="Email Address">
         </div>
         <div class="form-group">
             <input class="form-control" type="password" name="password" placeholder="Password">
@@ -23,8 +32,11 @@
             <input class="form-control" type="password" name="confirmation" placeholder="Confirm Password">
         </div>
         <input class="btn btn-primary" type="submit" value="Register">
+        
+
     </form>
 
     Already have an account? <a href="{% url 'login' %}">Log In here.</a>
+    <script></script>
 
 {% endblock %}

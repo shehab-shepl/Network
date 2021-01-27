@@ -2,6 +2,7 @@
 from django.urls import path
 
 from . import views
+from django.conf.urls import url
 
 urlpatterns = [
     path("", views.index, name="index"),
@@ -16,6 +17,8 @@ urlpatterns = [
     path("follow/<int:profile_id>", views.add_follow, name="addfollow"),
     path("unfollow/<int:profile_id>", views.unfollow, name="unfollow"),
     path("unlike/<int:post_id>",views.unlike,  name="unlike"),
-    path("edit/<int:post_id>",views.edit,  name="edit")
+    path("edit/<int:post_id>",views.edit,  name="edit"),
+    url(r'^ajax/validate_email/$', views.validate_email, name='validate_email'),
+
 
 ]

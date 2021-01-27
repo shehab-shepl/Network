@@ -7,6 +7,9 @@ from django.urls import reverse
 from .models import *
 from django import forms
 
+from django.http import JsonResponse
+
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -293,3 +296,10 @@ def add_comment(request,post_id):
 
         return redirect ('/',context)
 
+# show if emailadress is existing or not during register by using ajax
+def validate_email(request):
+    email = request.GET.get('email', None)
+    data = {
+        'is_taken': User.objects.filter(email=email).exists()
+    }
+    return JsonResponse(data)
