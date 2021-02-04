@@ -33,14 +33,6 @@ class PostForm(forms.ModelForm):
 
 def index(request):
     
-
-    post = {
-        id,
-        name,
-        user => { name},
-        likes => { {}, {}, {}, {}},
-        comments => { {comment, user => name }, {}, {}, {}}
-    }
     all_posts = Post.objects.all().order_by('-created')
     all_likes = likes.objects.all()
     comments = comment.objects.all()
