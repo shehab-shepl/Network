@@ -6,8 +6,20 @@
         <title>{% block title %}Social Network{% endblock %}</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link href="{% static 'network/styles.css' %}" rel="stylesheet">
-        {% block script %}
-        {% endblock %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+        {% comment %} bassam links {% endcomment %}
+        <script src= "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+        <script src= "http://code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src= "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src= "//code.jquery.com/jquery-1.11.1.min.js" ></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
     </head>
     <body>
 
@@ -42,10 +54,48 @@
               </ul>
             </div>
           </nav>
+
            
         <div class="body">
             {% block body %}
             {% endblock %}
+            <ul class="pagination justify-content-center">
+            {% if all_posts.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ all_posts.previous_page_number }}">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+            {%if all_posts.paginator.num_pages > 1 %}
+            {% for num in all_posts.paginator.page_range %}
+            {% if all_posts.number == num %}
+            <li class="page-item active">
+                <a class="page-link">{{ num }}</a>
+            </li>
+            {% elif num > all_posts.number|add:'-3' and num < all_posts.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+            {% if all_posts.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ all_posts.next_page_number }}">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+            </ul>
         </div>
+
+        {% block script %}
+        {% endblock %}
+
+    
     </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </html>

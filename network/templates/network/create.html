@@ -18,7 +18,7 @@
             <!-- Grid row -->
             <div class="text-left">
     
-                <form  method="POST" enctype='multipart/form-data'>
+                <form id='savepost' method="POST" enctype='multipart/form-data'>
                     {% csrf_token %}
                     
                     <div class="form-group">
@@ -30,7 +30,7 @@
                         <input class="form-control" type="file" name="img" placeholder="Image">
                     </div>
                     
-                    <input class="btn btn-primary" type="submit" value="save post">
+                    <input  class="btn btn-primary" type="submit" value="save post">
                 </form>
             </div>
         </div>

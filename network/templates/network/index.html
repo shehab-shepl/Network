@@ -24,10 +24,10 @@
     {%endif%}
     
         <h2 style="color:gray;">posts</h2>
-    <div class="container">
+    <div  class="container">
         <main class="tm-main">            
-            <div class="row tm-row">
-                {% for post in all_posts %}
+            <div id='total' class="row tm-row">
+            {% for post in all_posts %}
                 <article height='100px' >
                     <hr  class="tm-hr-primary">
                     <div>created by <a href="{% url 'profile' post.user_id.id%}"> {{post.user_id.username}}</a></div>
@@ -42,94 +42,77 @@
                         {% endif %}    
                         <p class="card-text" style="color:red;" ><small  >created in : {{post.created}}</small></p>
                     </div>
-                    <div>{{post.likes_num}} likes </div>
+                    {% comment %} <div id='countLiked'>{{post.likes_num}} likes </div> {% endcomment %}
 
 
-                    {% if user.is_authenticated %}
+        {% if user.is_authenticated %}
 
-                    {%for like in all_likes%} 
-                    {%if like.post_id.id == post.id and like.user_id.id == user.id%}
-                   
-                    <div><a href="{% url 'unlike' post.id%}" class="btn btn-primary" id="unlike" name="unlike">unlike</a></div>
-
-                    {%endif%}
-                    {%endfor%}
-
-                    <div><a href="{% url 'like' post.id%}" class="btn btn-primary " id="like" name="like">like</a></div>
-                    
-                    {% endif %} 
-
-
-                    {% comment %} {% liked = "True"%} {% endcomment %}
-                    <!--
-                    <div><a href="{% url 'like' post.id%}" class="btn btn-primary " name="like">like</a></div>
-                    <div><a href="{% url 'unlike' post.id%}" class="btn btn-primary " name="unlike">unlike</a></div>
-                    -->
-                    {% comment %} {%if post.id in all_likes.post_id_id %} {% endcomment %}
+        {% comment %} <div><a href="{% url 'like' post.id%}" class="btn btn-primary " id="like:{{post.id}}" name="like">like</a></div> {% endcomment %}
+         {% comment %} <form action="{% url 'like' post.id %}" method='POST' id='likeForm' data-id="{{post.id}}">
+         {% csrf_token %} {% endcomment %}
 
 
 
-                    {% comment %} {%if like.post_id.id == post.id%} {% endcomment %}
-                    
-                    
-
-{% comment %}          
-                    {%for like in all_likes%}
-                    {%if like.post_id.id != post.id and like.user_id.id == user.id%}
-                    
-                     {% endcomment %}
-                    
-
-                    {% comment %} {%endif%}
-                    {%endfor%} {% endcomment %}
+          <form  action="{% url 'like' post.id %}" class="like" method="POST" id='like_{{post.id}}'  data-id="{{post.id}}">
+          {% csrf_token %}
+          <input class="btn btn-primary" type="submit"  value="like" >
+          </form>
 
 
-                    
-                    {% comment %} {%for like in all_likes%}
-                    {%if like.post_id.id != post.id and like.user_id.id != user.id%}
-                    <div><a href="{% url 'like' post.id%}" class="btn btn-primary " name="like">like</a></div>
-                    {%endif%}
-                    {%endfor%} {% endcomment %}
-                    
-                    
-                            {% comment %} <div>
-                            {% with all_likes.post.id.count as total_likes %}
-                                {{ total_likes }} likes
-                            {% endwith %}
-                            </div>
-                     {% endcomment %}
+         {%for like in all_likes%} 
+         {%if like.post_id.id == post.id and like.user_id.id == user.id%}
+        
+          <form   action="{% url 'unlike' post.id %}" class="unlike" method="POST" id='unlike_{{post.id}}'  data-id="{{post.id}}">
+          {% csrf_token %}
+          <input class="btn btn-primary" type="submit"  value="unlike" >
+          </form>   
+          
+          
+          
+                {% comment %} <div><a href="{% url 'unlike' post.id%}" class="btn btn-primary" id="unlike_{{post.id}}" name="unlike" data-id="{{post.id}}">unlike</a></div> {% endcomment %}
+         {% comment %} <div><a style="display:none" href="{% url 'like' post.id%}" class="btn btn-primary " id="like:{{post.id}}" name="like">like</a></div> {% endcomment %}
+
+         {%endif%}
+         {%endfor%}
+
+         
+         {% endif %} 
 
 
-                        <div>
-                            <hr  class="tm-hr-primary">
-                            <div><strong>Comments</strong></div>
-                            <hr  class="tm-hr-primary">
 
-                            {%for comment in comments%}
-                            {% if comment.post_id.id == post.id %}
-                                {% comment %} <article  class="col-12 col-md-6 tm-post"> {% endcomment %}
-                                    <div><i style="color:Gray;">by : {{comment.user_id}}</i></div>
-                                    {{comment.comment}}
-                                    <div> <i><small style="color:red;">created  : {{comment.created}}</small> </i></div>
-                                    <hr>
-                                {% comment %} </article> {% endcomment %}
-                            {%endif%}    
-                            {%endfor%}
-                        </div>
-                    
-                    {% if user.is_authenticated %}
-                    <form style="width:450px; left:300px;"  class="input-group" action="{% url 'addcomment' post.id %}" method="POST">
-                    {% csrf_token %}
-                    <span style=" color:DodgerBlue;" class="input-group-text">comment</span>
-                    <textarea class="form-control" name="newcomment" aria-label="With textarea"></textarea>
-                    <input class="btn btn-primary" type="submit" value="send">
-                    </form> 
-                    {%endif%}
-                    <hr>
-                    {%if post.user_id.id == user.id%}
-                    <div><a href="{% url 'edit' post.id%}" class="btn btn-primary"  name="edit">edit</a></div>
-                    {%endif%}
-                    
+             <div>
+                 <hr  class="tm-hr-primary">
+                 <div><strong>Comments</strong></div>
+                 <hr  class="tm-hr-primary">
+                 <div id="all_comments_{{post.id}}" data-id="{{post.id}}" >
+                 {%for comment in comments%}
+                 {% if comment.post_id.id == post.id %}
+                         <div><i style="color:Gray;">by : {{comment.user_id}}</i></div>
+                         {{comment.comment}}
+                         <div> <i><small style="color:red;">created  : {{comment.created}}</small> </i></div>
+                         <hr>
+                 {%endif%}    
+                 {%endfor%}
+                 </div>
+             </div>
+         
+         {% if user.is_authenticated %}
+         {% comment %} <form style="width:450px; left:300px;"  class="input-group" action="{% url 'addcomment' post.id %}" method="POST"> {% endcomment %}
+         <form style="width:450px; left:300px;"   class="comment-form" id="comment_form_{{post.id}}" data-id="{{post.id}}"  action="{% url 'addcomment' post.id %}"  method="POST">
+
+         {% csrf_token %}
+         <span style=" color:DodgerBlue;" class="input-group-text">comment</span>
+         <input class="form-control" class="newcomment" name="newcomment" id="newcomment" aria-label="With textarea"></input>
+         <input class="btn btn-primary" type="submit" value="send">
+         </form> 
+         {%endif%}
+         <hr>
+         {%if post.user_id.id == user.id%}
+         <div><a href="{% url 'edit' post.id%}" class="btn btn-primary"  name="edit">edit</a></div>
+         {%endif%}
+         
+
+
                     
                 </article>
                 {%endfor%}

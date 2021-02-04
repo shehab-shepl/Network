@@ -15,7 +15,6 @@ class Post (models.Model):
     img = models.ImageField(upload_to='post_img',null=True ,blank=True)
     created = models.DateTimeField(default=datetime.datetime.now())
     active = models.BooleanField(default=True)
-    likes_num = models.IntegerField(null=True ,blank=True ,default=0)
 
     def __str__(self):
         return f"{self.img}&{self.description}"

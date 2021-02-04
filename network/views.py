@@ -8,6 +8,15 @@ from .models import *
 from django import forms
 
 from django.http import JsonResponse
+from django.core import serializers
+
+from django.db.models import OuterRef, Subquery, Count, Exists
+from django.views.generic import ListView
+from django.core.paginator import Paginator
+
+
+MAX_POSTS_PER_PAGE = 30
+
 
 
 class PostForm(forms.ModelForm):
@@ -15,18 +24,34 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = ['description','img','active']
 
+# class CommentForm(forms.ModelForm):
+#     class Meta:
+#         model = comment
+#         fields = ['comment','post_id','user_id']
 
 
 
 def index(request):
     
 
-    all_posts = Post.objects.all()
+    post = {
+        id,
+        name,
+        user => { name},
+        likes => { {}, {}, {}, {}},
+        comments => { {comment, user => name }, {}, {}, {}}
+    }
+    all_posts = Post.objects.all().order_by('-created')
     all_likes = likes.objects.all()
     comments = comment.objects.all()
+
+    paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'all_likes':all_likes,
-        'all_posts':all_posts,
+        'all_posts':page_obj,
         'comments':comments,
     }
     
@@ -230,15 +255,24 @@ def like(request, post_id):
     new_like.post_id = Post.objects.get(id=post_id)
     new_like.save()
     edit_post_like = Post.objects.get(id=post_id)
-    all_posts = Post.objects.all()
+    
+    all_posts = Post.objects.all().order_by('-created')
     all_likes = likes.objects.all()
+    comments = comment.objects.all()
+
+    paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
+    if post_id % MAX_POSTS_PER_PAGE == 0 :
+        page_number = post_id/MAX_POSTS_PER_PAGE
+    else :
+        page_number = int(post_id/MAX_POSTS_PER_PAGE)+1
+    page_obj = paginator.get_page(1)
     context = {
         'all_likes':all_likes,
-        'all_posts':all_posts
+        'all_posts':page_obj,
+        'comments':comments,
     }
-    return redirect ('/',context)
-
-
+    return render(request,'network/index.html',context)
+    # return render(request, "network/login.html")
 
 def edit(request, post_id):
     post = Post.objects.get(id=post_id)
@@ -269,32 +303,118 @@ def unlike(request, post_id):
 
     like = likes.objects.filter(post_id=post_id,user_id=request.user)
     like.delete()
-    all_posts = Post.objects.all()
+
+    all_posts = Post.objects.all().order_by('-created')
     all_likes = likes.objects.all()
+    comments = comment.objects.all()
+
+    paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
+    if post_id % MAX_POSTS_PER_PAGE == 0 :
+        page_number = post_id/MAX_POSTS_PER_PAGE
+    # elif post_id > MAX_POSTS_PER_PAGE :
+    else :
+        page_number = int(post_id/MAX_POSTS_PER_PAGE)+1
+
+    
+    
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'all_likes':all_likes,
-        'all_posts':all_posts
+        'all_posts':page_obj,
+        'comments':comments,
     }
-    return redirect ('/',context)
     
+    return render(request,'network/index.html',context)
+        
+
 
 def add_comment(request,post_id):
-        new_comment = comment()
-        new_comment.comment = request.POST["newcomment"]
-        new_comment.post_id = Post.objects.get(id=post_id)
-        new_comment.user_id = request.user
-        new_comment.save()
 
-        all_posts = Post.objects.all()
-        all_likes = likes.objects.all()
-        comments = comment.objects.all()
-        context = {
-            'all_likes':all_likes,
-            'all_posts':all_posts,
-            'comments':comments,
-        }
+    new_comment = comment()
+    new_comment.comment = request.POST["newcomment"]
+    new_comment.post_id = Post.objects.get(id=post_id)
+    new_comment.user_id = request.user
+    new_comment.save()
 
-        return redirect ('/',context)
+        # all_posts = Post.objects.all()
+        # all_likes = likes.objects.all()
+        # comments = comment.objects.all()
+        # context = {
+        #     'all_likes':all_likes,
+        #     'all_posts':all_posts,
+        #     'comments':comments,
+        # }
+
+        # return redirect ('/',context)
+
+
+    all_posts = Post.objects.all().order_by('-created')
+    all_likes = likes.objects.all()
+    comments = comment.objects.all()
+
+    paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
+    if post_id % MAX_POSTS_PER_PAGE == 0 :
+        page_number = post_id/MAX_POSTS_PER_PAGE
+    else :
+        page_number = int(post_id/MAX_POSTS_PER_PAGE)+1
+
+    
+    
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'all_likes':all_likes,
+        'all_posts':page_obj,
+        'comments':comments,
+    }
+    
+    return render(request,'network/index.html',context)
+        
+
+        
+
+
+
+
+    #def postFriend(request):
+    # request should be ajax and method should be POST.
+    # if request.method == "POST":
+    #     # get the form data
+    #     form = CommentForm()
+    #     form.post_id = Post.objects.get(id=post_id)
+    #     form.user_id = request.user
+    #     # save the data and after fetch the object in instance
+    #     if form.is_valid():
+    #         instance = form.save()
+    #         # serialize in new friend object in json
+    #         ser_instance = serializers.serialize('json', [ instance, ])
+    #         # send to client side.
+    #         return JsonResponse({"instance": ser_instance}, status=200)
+    #     else:
+    #         # some form errors occured.
+    #         return JsonResponse({"error": form.errors}, status=400)
+
+    # # some error occured
+    # return JsonResponse({"error": ""}, status=400)
+
+
+
+        # new_comment = comment()
+        # new_comment.comment = request.POST["newcomment"]
+        # new_comment.post_id = Post.objects.get(id=post_id)
+        # new_comment.user_id = request.user
+        # new_comment.save()
+
+        # all_posts = Post.objects.all()
+        # all_likes = likes.objects.all()
+        # comments = comment.objects.all()
+        # context = {
+        #     'all_likes':all_likes,
+        #     'all_posts':all_posts,
+        #     'comments':comments,
+        # }
+        # return redirect ('/',context)
 
 # show if emailadress is existing or not during register by using ajax
 def validate_email(request):
