@@ -1,8 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from django.contrib.auth.models import User
 import datetime
 from django.utils import timezone
+from django.contrib.auth import authenticate
+
 
 
 class User(AbstractUser):
@@ -18,6 +20,26 @@ class Post (models.Model):
 
     def __str__(self):
         return f"{self.img}&{self.description}"
+        
+    @property
+    def comments(self):
+        obj = comment
+        return obj.objects.filter(post_id = self.id)
+
+    @property
+    def likes(self):
+        obj = likes
+        return len(obj.objects.filter(post_id = self.id))
+
+
+    def isUserLikedPost(self ):
+        obj = likes
+        return (User.id)
+
+
+    
+
+
 
 
 
@@ -32,6 +54,7 @@ class likes (models.Model):
     user_id = models.ForeignKey(User , on_delete=models.CASCADE )
     post_id = models.ForeignKey(Post , on_delete=models.CASCADE )
     created = models.DateTimeField(default=datetime.datetime.now())
+
 
 
 

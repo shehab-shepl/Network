@@ -2,34 +2,58 @@
 {% load static %}
 {% block body %}
 
+
     {%if profile_id%}
     <div style="color:red;" ><strong><i>{{name}}   </i></strong></div >
+
+    <div class ="following">
     <div >
         following : {{following}}
         <br>
         followers : {{followers}}
     </div>
+
+    
     {% if user.is_authenticated %}
     {%if user.id != profile_id %}
         {%if follows%}
-        <a href="{% url 'unfollow' profile_id%}" method="POST" class="btn btn-primary btn-lg" name="removefollow">unfollow</a>
+        <form class="unfollow" action="{% url  'unfollow' profile_id %}">
+            {% csrf_token %}
+            <input class="btn btn-primary"  type="submit" value="unfolllow">
+        </form>
+        <br>
+
         {%else%}
-        <a href="{% url 'addfollow' profile_id%}" method="POST" class="btn btn-primary btn-lg" name="addfollow">follow</a>
+
+        
+        <form class="follow" action="{% url  'addfollow' profile_id %}" >
+            {% csrf_token %}
+            <input class="btn btn-primary"  type="submit" value="folllow">
+        </form>
+        <br>
+
         {%endif%}
     {%endif%}                                                                    
     {%endif%}
     {%endif%}
+    </div>
     {% if user.is_authenticated %}
+    
     <a href="{% url 'addpost'%}" class="btn btn-primary btn-lg" name="addpost">NEW POST</a>
+
     {%endif%}
+
     
         <h2 style="color:gray;">posts</h2>
     <div  class="container">
         <main class="tm-main">            
             <div id='total' class="row tm-row">
             {% for post in all_posts %}
+
+
+
                 <article height='100px' >
-                    <hr  class="tm-hr-primary">
+                    <hr class="hrfasel" >
                     <div>created by <a href="{% url 'profile' post.user_id.id%}"> {{post.user_id.username}}</a></div>
                     
 
@@ -42,62 +66,43 @@
                         {% endif %}    
                         <p class="card-text" style="color:red;" ><small  >created in : {{post.created}}</small></p>
                     </div>
-                    {% comment %} <div id='countLiked'>{{post.likes_num}} likes </div> {% endcomment %}
+                    
 
 
         {% if user.is_authenticated %}
 
-        {% comment %} <div><a href="{% url 'like' post.id%}" class="btn btn-primary " id="like:{{post.id}}" name="like">like</a></div> {% endcomment %}
-         {% comment %} <form action="{% url 'like' post.id %}" method='POST' id='likeForm' data-id="{{post.id}}">
-         {% csrf_token %} {% endcomment %}
 
+        <p class="card-text">
+                <div id="like_{{post.id}}"  data-id="{{post.id}}" >
+                    <div id='countLiked'>{{post.likes}} likes </div>
+                    <br>
+                    {% if post.current_like > 0 %}
+                     <a href="{% url 'unlike' post.id %}"  id="unlike_{{post.id}}"  data-id="{{post.id}}"  class="buttonunlike">unlike</a> 
+                    {%else%}
+                     <a href="{% url 'like' post.id %}"  id="like_{{post.id}}"  data-id="{{post.id}}" class="buttonlike">like</a> 
+                    {% endif %} 
+                      
+                </div>
+        </p>
 
-
-          <form  action="{% url 'like' post.id %}" class="like" method="POST" id='like_{{post.id}}'  data-id="{{post.id}}">
-          {% csrf_token %}
-          <input class="btn btn-primary" type="submit"  value="like" >
-          </form>
-
-
-         {%for like in all_likes%} 
-         {%if like.post_id.id == post.id and like.user_id.id == user.id%}
         
-          <form   action="{% url 'unlike' post.id %}" class="unlike" method="POST" id='unlike_{{post.id}}'  data-id="{{post.id}}">
-          {% csrf_token %}
-          <input class="btn btn-primary" type="submit"  value="unlike" >
-          </form>   
-          
-          
-          
-                {% comment %} <div><a href="{% url 'unlike' post.id%}" class="btn btn-primary" id="unlike_{{post.id}}" name="unlike" data-id="{{post.id}}">unlike</a></div> {% endcomment %}
-         {% comment %} <div><a style="display:none" href="{% url 'like' post.id%}" class="btn btn-primary " id="like:{{post.id}}" name="like">like</a></div> {% endcomment %}
-
          {%endif%}
-         {%endfor%}
-
-         
-         {% endif %} 
-
-
-
+        
              <div>
                  <hr  class="tm-hr-primary">
                  <div><strong>Comments</strong></div>
                  <hr  class="tm-hr-primary">
                  <div id="all_comments_{{post.id}}" data-id="{{post.id}}" >
-                 {%for comment in comments%}
-                 {% if comment.post_id.id == post.id %}
+                 {%for comment in post.comments%}
                          <div><i style="color:Gray;">by : {{comment.user_id}}</i></div>
                          {{comment.comment}}
                          <div> <i><small style="color:red;">created  : {{comment.created}}</small> </i></div>
                          <hr>
-                 {%endif%}    
                  {%endfor%}
                  </div>
              </div>
          
          {% if user.is_authenticated %}
-         {% comment %} <form style="width:450px; left:300px;"  class="input-group" action="{% url 'addcomment' post.id %}" method="POST"> {% endcomment %}
          <form style="width:450px; left:300px;"   class="comment-form" id="comment_form_{{post.id}}" data-id="{{post.id}}"  action="{% url 'addcomment' post.id %}"  method="POST">
 
          {% csrf_token %}

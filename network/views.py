@@ -15,7 +15,7 @@ from django.views.generic import ListView
 from django.core.paginator import Paginator
 
 
-MAX_POSTS_PER_PAGE = 30
+MAX_POSTS_PER_PAGE = 100
 
 
 
@@ -33,9 +33,12 @@ class PostForm(forms.ModelForm):
 
 def index(request):
     
-    all_posts = Post.objects.all().order_by('-created')
+    # all_posts = Post.objects.all().order_by('-created')
     all_likes = likes.objects.all()
-    comments = comment.objects.all()
+
+    all_likes = likes.objects.filter(post_id=OuterRef('id'), user_id=request.user)
+    all_posts = Post.objects.filter().order_by('-created').annotate(current_like=Count(all_likes.values('id')))
+    # comments = comment.objects.all()
 
     paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
     page_number = request.GET.get('page')
@@ -44,7 +47,7 @@ def index(request):
     context = {
         'all_likes':all_likes,
         'all_posts':page_obj,
-        'comments':comments,
+        # 'comments':comments,
     }
     
     return render(request,'network/index.html',context)
@@ -106,25 +109,29 @@ def register(request):
 
 def following(request):
     
-    all_posts = []
+    all_following_post = []
     following = follow.objects.filter(follower_id = request.user)
     id_of_following_list = []
     for account in following:
         id_of_following_list.append(account.following_id)
     for user_id in id_of_following_list:
-        all_posts.append (Post.objects.filter(user_id=user_id))
+        all_following_post.append (Post.objects.filter(user_id=user_id).order_by('-created'))
     all_posts_for_all_users = Post.objects.all()
     #print ('all_posts_for_all_users :', all_posts_for_all_users)
     #print ("all_posts : " ,all_posts)
     
-    all_likes = likes.objects.all()
+    # all_likes = likes.objects.all()
+    
+    all_likes = likes.objects.filter(post_id=OuterRef('id'), user_id=request.user)
+    all_posts = all_following_post[0].order_by('-created').annotate(current_like=Count(all_likes.values('id')))
+
     comments = comment.objects.all()
     if len(all_posts) == 0:
         message = "you aren't follow any one"
         return render(request, "network/following.html",{'message':message})
     context = {
         'all_likes':all_likes,
-        'all_posts':all_posts[0],
+        'all_posts':all_posts,
         'comments':comments,
     }
 
@@ -141,10 +148,12 @@ def add_follow(request, profile_id):
     followingid = profile_id
     add_follow.following_id = User.objects.get(id=followingid)
     add_follow.save()
+    name =  User.objects.get(id=profile_id)
+
 
     followers = follow.objects.filter(following_id=profile_id)
     following = follow.objects.filter(follower_id=profile_id)
-    all_posts = Post.objects.filter(user_id=profile_id)
+    all_posts = Post.objects.filter(user_id=profile_id).order_by('-created')
     all_likes = likes.objects.all()
     comments = comment.objects.all()
     follows = follow.objects.filter(follower_id=request.user,following_id=profile_id)
@@ -153,6 +162,7 @@ def add_follow(request, profile_id):
         'following' :len(following),
         'all_likes':all_likes,
         'all_posts':all_posts,
+        'name': name,
         'comments':comments,
         'profile_id' : profile_id,
         'follows' :follows
@@ -168,16 +178,19 @@ def add_follow(request, profile_id):
 def unfollow(request, profile_id):
     remove_follow = follow.objects.filter( following_id=profile_id , follower_id = request.user)
     remove_follow.delete()
+    name =  User.objects.get(id=profile_id)
+
 
     followers = follow.objects.filter(following_id=profile_id)
     following = follow.objects.filter(follower_id=profile_id)
-    all_posts = Post.objects.filter(user_id=profile_id)
+    all_posts = Post.objects.filter(user_id=profile_id).order_by('-created')
     all_likes = likes.objects.all()
     comments = comment.objects.all()
     context = {
         'followers' :len(followers),
         'following' :len(following),
         'all_likes':all_likes,
+        'name': name,
         'all_posts':all_posts,
         'comments':comments,
         'profile_id' : profile_id,
@@ -196,7 +209,7 @@ def profile(request, profile_id):
     following = follow.objects.filter(follower_id=profile_id)
     name =  User.objects.get(id=profile_id)
 
-    all_posts = Post.objects.filter(user_id=profile_id)
+    all_posts = Post.objects.filter(user_id=profile_id).order_by('-created')
     all_likes = likes.objects.all()
     comments = comment.objects.all()
     follows = follow.objects.filter(follower_id=request.user,following_id=profile_id)
@@ -238,33 +251,37 @@ def addpost(request):
 
 
 def like(request, post_id):
-    edit_post_like = Post.objects.get(id=post_id)
-    edit_post_like.likes_num += 1
-    edit_post_like.save()
+    # edit_post_like = Post.objects.get(id=post_id)
+    # edit_post_like.likes_num += 1
+    # edit_post_like.save()
+    likes_on_post = likes.objects.filter(user_id=request.user,post_id=post_id)
+    if len(likes_on_post)==0:
 
-    new_like = likes()
-    new_like.user_id = request.user
-    new_like.post_id = Post.objects.get(id=post_id)
-    new_like.save()
-    edit_post_like = Post.objects.get(id=post_id)
-    
-    all_posts = Post.objects.all().order_by('-created')
-    all_likes = likes.objects.all()
-    comments = comment.objects.all()
+        new_like = likes()
+        new_like.user_id = request.user
+        new_like.post_id = Post.objects.get(id=post_id)
+        new_like.save()
+        edit_post_like = Post.objects.get(id=post_id)
+        
+        all_likes = likes.objects.filter(post_id=OuterRef('id'), user_id=request.user)
+        all_posts = Post.objects.filter().order_by('-created').annotate(current_like=Count(all_likes.values('id')))
 
-    paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
-    if post_id % MAX_POSTS_PER_PAGE == 0 :
-        page_number = post_id/MAX_POSTS_PER_PAGE
-    else :
-        page_number = int(post_id/MAX_POSTS_PER_PAGE)+1
-    page_obj = paginator.get_page(1)
-    context = {
-        'all_likes':all_likes,
-        'all_posts':page_obj,
-        'comments':comments,
-    }
-    return render(request,'network/index.html',context)
-    # return render(request, "network/login.html")
+        # print(all_likes[0])
+        
+        comments = comment.objects.all()
+        paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
+        if post_id % MAX_POSTS_PER_PAGE == 0 :
+            page_number = post_id/MAX_POSTS_PER_PAGE
+        else :
+            page_number = int(post_id/MAX_POSTS_PER_PAGE)+1
+        page_obj = paginator.get_page(1)
+        context = {
+            'all_likes':all_likes,
+            'all_posts':page_obj,
+            'comments':comments,
+        }
+        return render(request,'network/index.html',context)
+
 
 def edit(request, post_id):
     post = Post.objects.get(id=post_id)
@@ -289,15 +306,16 @@ def edit(request, post_id):
 
 
 def unlike(request, post_id):
-    edit_post_like = Post.objects.get(id=post_id)
-    edit_post_like.likes_num -= 1
-    edit_post_like.save()
+    # edit_post_like = Post.objects.get(id=post_id)
+    # edit_post_like.likes_num -= 1
+    # edit_post_like.save()
 
     like = likes.objects.filter(post_id=post_id,user_id=request.user)
     like.delete()
 
-    all_posts = Post.objects.all().order_by('-created')
-    all_likes = likes.objects.all()
+    all_likes = likes.objects.filter(post_id=OuterRef('id'), user_id=request.user)
+    all_posts = Post.objects.filter().order_by('-created').annotate(current_like=Count(all_likes.values('id')))
+
     comments = comment.objects.all()
 
     paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
