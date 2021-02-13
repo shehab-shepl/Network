@@ -32,25 +32,25 @@ class PostForm(forms.ModelForm):
 
 
 def index(request):
-    
-    # all_posts = Post.objects.all().order_by('-created')
-    all_likes = likes.objects.all()
 
-    all_likes = likes.objects.filter(post_id=OuterRef('id'), user_id=request.user)
-    all_posts = Post.objects.filter().order_by('-created').annotate(current_like=Count(all_likes.values('id')))
-    # comments = comment.objects.all()
+    try:
+        all_likes = likes.objects.filter(post_id=OuterRef('id'), user_id=request.user)
+        all_posts = Post.objects.filter().order_by('-created').annotate(current_like=Count(all_likes.values('id')))
 
-    paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+        paginator = Paginator(all_posts, MAX_POSTS_PER_PAGE)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-    context = {
-        'all_likes':all_likes,
-        'all_posts':page_obj,
-        # 'comments':comments,
-    }
-    
-    return render(request,'network/index.html',context)
+        context = {
+            'all_likes':all_likes,
+            'all_posts':page_obj,
+        }
+        
+        return render(request,'network/index.html',context)
+
+    except:
+        return render(request,'network/login.html')
+
 
     
 
